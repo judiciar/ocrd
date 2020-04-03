@@ -1,0 +1,5 @@
+Fast:
+convert -density 200 13.pdf -depth 8 -strip -background white -alpha off file%d.tif; for i in file*.tif; do textcleaner.sh -e stretch -f 25 -o 20 -t 50 -u -s 1 -T -p 20 $i out_$i; rm $i; done; for i in out_file*.tif; do tesseract $i $i -l ron --oem 1 --psm 1 --tessdata-dir /usr/share/tesseract-ocr/4.00/tessfast; rm $i; done; rm output.txt; for i in out_file*.txt; do cat $i >> output.txt; rm $i; done
+
+Best:
+convert -density 300 13.pdf -depth 8 -strip -background white -alpha off -deskew 80% +repage file%d.tif; for i in file*.tif; do textcleaner.sh -e stretch -f 25 -o 20 -t 50 -s 1 -T -p 20 $i out_$i; rm $i; done; for i in out_file*.tif; do tesseract $i $i -l ron --oem 1 --psm 1; rm $i; done; rm output.txt; for i in out_file*.txt; do cat $i >> output.txt; rm $i; done

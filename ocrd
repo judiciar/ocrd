@@ -1,0 +1,37 @@
+#!/bin/bash
+
+listafoldereocr=("/mnt/cagl/OCR/" "/mnt/trgl/OCR/" "/mnt/jdgl/OCR/" "/mnt/jdtecuci/OCR/" "/mnt/jdtgb/OCR/" "/mnt/jdliesti/OCR/" "/mnt/trvn/OCR/" "/mnt/jdfocsani/OCR/" "/mnt/jdpanciu/OCR/" "/mnt/jdadjud/OCR/" "/mnt/br/TrBraila/OCR/" "/mnt/br/JdBraila/OCR/" "/mnt/jdfaurei/OCR/")
+
+listafolderepdf=("/mnt/cagl/Splitate/" "/mnt/trgl/Splitate/" "/mnt/jdgl/Splitate/" "/mnt/jdtecuci/Splitate/" "/mnt/jdtgb/Splitate/" "/mnt/jdliesti/Splitate/" "/mnt/trvn/Splitate/" "/mnt/jdfocsani/Splitate/" "/mnt/jdpanciu/Splitate/" "/mnt/jdadjud/Splitate/" "/mnt/br/TrBraila/Splitate/" "/mnt/br/JdBraila/Splitate/" "/mnt/jdfaurei/Splitate/")
+
+listafolderetxt=("/mnt/cagl/TXT/" "/mnt/trgl/TXT/" "/mnt/jdgl/TXT/" "/mnt/jdtecuci/TXT/" "/mnt/jdtgb/TXT/" "/mnt/jdliesti/TXT/" "/mnt/trvn/TXT/" "/mnt/jdfocsani/TXT/" "/mnt/jdpanciu/TXT/" "/mnt/jdadjud/TXT/" "/mnt/br/TrBraila/TXT/" "/mnt/br/JdBraila/TXT/" "/mnt/jdfaurei/TXT/")
+
+export PATH=/usr/local/bin:/bin:/usr/bin:/usr/share:$PATH
+export HOME=/home/localadmin/ocr/temp/
+export OMP_THREAD_LIMIT=1
+IFS=$'
+'
+
+cd $HOME
+
+while true
+  do
+    for ((i=0;i<${#listafoldereocr[@]};i++))
+      do
+        find ${listafoldereocr[$i]} -type f -iname "*.pdf" | parallel -j-3 --nice 2 "/home/localadmin/ocr/ocrfile.sh {1} {1/.}; mv -f -v {1} ${listafolderepdf[$i]}; mv -f {1/.}.txt ${listafolderetxt[$i]}" :::: -
+      done
+    sleep 30
+  done
+
+# Daemon-ul OCR citatii proceseaza fiecare folder din vectorul (array) listafoldereocr, cautand fisiere cu extensia .pdf.
+# Cautarea este case-insensitive (accepta si extensii .PDF, .Pdf etc.). 
+# Daemon-ul preda apoi fisierele aplicatiei GNU parallel. GNU parallel prelucreaza cate un fisier pdf pe fiecare core al
+# procesorului in paralel, obtinand astfel viteze foarte mari. Aplicatia lasa cateva core-uri libere pentru alte programe
+# (-j-x). Pentru fiecare fisier, GNU parallel ruleaza script-ul ocrfile.sh, care curata si indreapta imaginea si apoi
+# livreaza rezultatul aplicatiei OCR tesseract. La sfarsit, este returnat un fisier text cu rezultatul OCR.
+# Daemon-ul muta fisierul text in folder-ul corespunzator (cu acelasi indice) din vectorul (array) listafolderetxt, iar 
+# fisierul pdf este mutat in folder-ul corespunzator din vectorul listafolderepdf. 
+# Daemon-ul lucreaza intr-un folder temporar $HOME si asteapta la sfarsit 30 secunde inainte sa reia verificarea tuturor 
+# folder-elor din vectorul (array) listafoldereocr. Daemon-ul si ocrfile.sh folosesc Shell script, care este optimizat
+# pentru operatiuni cu fisierele si lansarea de aplicatii, precum si Python, care este potrivit pentru prelucrari matematice
+# de imagine.
