@@ -4,8 +4,6 @@ After=network-online.target
 
 [Service]
 Type=simple
-# ExecStartPre=/bin/chown -Rf localadmin /mnt/ramdisk/ 
-# ExecStartPre=/usr/bin/rsync -ar /home/localadmin/ocr/ /mnt/ramdisk/
 ExecStart=/bin/bash /home/localadmin/ocr/ocrd
 ExecStop=/bin/kill -- $MAINPID
 KillMode=control-group
